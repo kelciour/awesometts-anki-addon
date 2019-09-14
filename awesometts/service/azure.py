@@ -21,55 +21,21 @@ Service implementation for the Microsoft Azure Text-To-Speech service
 https://azure.microsoft.com/en-us/services/cognitive-services/text-to-speech/
 """
 
+import requests
 from .base import Service
 
 __all__ = ['Azure']
 
 
 VOICES = {
-    'auenglishfemale': ('en-AU', 'female'),
-    'brportuguesefemale': ('pr-BR', 'female'),
-    'caenglishfemale': ('en-CA', 'female'),
-    'cafrenchfemale': ('fr-CA', 'female'),
-    'cafrenchmale': ('fr-CA', 'male'),
-    'chchinesefemale': ('zh-CMN', 'female'),
-    'chchinesemale': ('zh-CMN', 'male'),
-    'eurcatalanfemale': ('ca', 'female'),
-    'eurczechfemale': ('cs', 'female'),
-    'eurdanishfemale': ('da', 'female'),
-    'eurdutchfemale': ('nl', 'female'),
-    'eurfinnishfemale': ('fi', 'female'),
-    'eurfrenchfemale': ('fr-FR', 'female'),
-    'eurfrenchmale': ('fr-FR', 'male'),
-    'eurgermanfemale': ('de', 'female'),
-    'eurgermanmale': ('de', 'male'),
-    'euritalianfemale': ('it', 'female'),
-    'euritalianmale': ('it', 'male'),
-    'eurnorwegianfemale': ('no', 'female'),
-    'eurpolishfemale': ('pl', 'female'),
-    'eurportuguesefemale': ('pt-PT', 'female'),
-    'eurportuguesemale': ('pt-PT', 'male'),
-    'eurspanishfemale': ('es-ES', 'female'),
-    'eurspanishmale': ('es-ES', 'male'),
-    'eurturkishfemale': ('tr', 'female'),
-    'eurturkishmale': ('tr', 'male'),
-    'hkchinesefemale': ('zh-YUE', 'female'),
-    'huhungarianfemale': ('hu', 'female'),
-    'jpjapanesefemale': ('jp', 'female'),
-    'jpjapanesemale': ('jp', 'male'),
-    'krkoreanfemale': ('ko', 'female'),
-    'krkoreanmale': ('ko', 'male'),
-    'rurussianfemale': ('ru', 'female'),
-    'rurussianmale': ('ru', 'male'),
-    'swswedishfemale': ('sv', 'female'),
-    'twchinesefemale': ('zh-TW', 'female'),
-    'ukenglishfemale': ('en-GB', 'female'),
-    'ukenglishmale': ('en-GB', 'male'),
-    'usenglishfemale': ('en-US', 'female'),
-    'usenglishmale': ('en-US', 'male'),
-    'usspanishfemale': ('es-US', 'female'),
-    'usspanishmale': ('es-US', 'male'),
+    'Microsoft Server Speech Text to Speech Voice (zh-CN, XiaoxiaoNeural)': ('zh-CN', 'female'),
+    'Microsoft Server Speech Text to Speech Voice (zh-HK, Tracy, Apollo)': ('zh-HK', 'female')
 }
+
+#VOICES = [
+#    ('Microsoft Server Speech Text to Speech Voice (zh-CN, XiaoxiaoNeural)', 'zh-CN', 'female'),
+#    ('Microsoft Server Speech Text to Speech Voice (zh-HK, Tracy, Apollo)', 'zh-HK', 'female')
+#]
 
 
 class Azure(Service):
@@ -78,6 +44,7 @@ class Azure(Service):
     """
 
     __slots__ = [
+        'access_token'
     ]
 
     NAME = "Microsoft Azure"
@@ -86,6 +53,11 @@ class Azure(Service):
     # Trait.INTERNET, as it is a paid-for-by-the-user API, and we do not want
     # to rate-limit it or trigger error caching behavior
     TRAITS = []
+
+    #def __init__(self, temp_dir, lame_flags, normalize, logger, ecosystem):
+    #    super(Azure, self).__init__(temp_dir, lame_flags, normalize, logger, ecosystem)
+    #    self.access_token = None
+
 
     def desc(self):
         """Returns name with a voice count."""
@@ -100,42 +72,41 @@ class Azure(Service):
     def options(self):
         """Provides access to voice only."""
 
-        voice_lookup = {self.normalize(api_name): api_name
-                        for api_name in VOICES.keys()}
+        # make sure access token is requested when retrieving audio
+        self.access_token = None
 
         def transform_voice(user_value):
-            """Fixes whitespace and casing only."""
-            normalized_value = self.normalize(user_value)
-            return (voice_lookup[normalized_value]
-                    if normalized_value in voice_lookup else user_value)
+            return user_value
+
+        def get_voice_choices():
+            result = []
+            for voice_name, attributes in VOICES.items():
+                entry = (voice_name, voice_name)
+                result.append(entry)
+            return result
 
         return [
             dict(key='voice',
                  label="Voice",
-                 values=[(api_name, f"{api_name} ({gender} {language})")
-                         for api_name, (language, gender)
-                         in sorted(VOICES.items(),
-                                   key=lambda item: (item[1][0],
-                                                     item[1][1]))],
-                 transform=transform_voice),
-
-            dict(key='speed',
-                 label="Speed",
-                 values=(-10, +10),
-                 transform=lambda i: min(max(-10, int(round(float(i)))), +10),
-                 default=0),
-
-            dict(key='pitch',
-                 label="Pitch",
-                 values=(0, +200),
-                 transform=lambda i: min(max(0, int(round(float(i)))), +200),
-                 default=100),
+                 values=get_voice_choices(),
+                 transform=transform_voice)
         ]
 
+    def get_token(self, subscription_key):
+        fetch_token_url = "https://eastus.api.cognitive.microsoft.com/sts/v1.0/issueToken"
+        headers = {
+            'Ocp-Apim-Subscription-Key': self.subscription_key
+        }
+        response = requests.post(fetch_token_url, headers=headers)
+        self.access_token = str(response.text)
+
     def run(self, text, options, path):
-        """Downloads from iSpeech API directly to an MP3."""
+        """Downloads from Azure API directly to an MP3."""
 
         try:
+            if self.access_token == None:
+                self.get_token(options['key'])
+
             self.net_download(
                 path,
                 [
