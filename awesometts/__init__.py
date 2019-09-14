@@ -189,6 +189,7 @@ router = Router(
     services=Bundle(
         mappings=[
             ('abair', service.Abair),
+            ('azure', service.Azure),
             ('baidu', service.Baidu),
             ('collins', service.Collins),
             ('duden', service.Duden),
