@@ -22,6 +22,7 @@ https://azure.microsoft.com/en-us/services/cognitive-services/text-to-speech/
 """
 
 import requests
+from xml.etree import ElementTree
 from .base import Service
 
 __all__ = ['Azure']
@@ -31,11 +32,6 @@ VOICES = {
     'Microsoft Server Speech Text to Speech Voice (zh-CN, XiaoxiaoNeural)': ('zh-CN', 'female'),
     'Microsoft Server Speech Text to Speech Voice (zh-HK, Tracy, Apollo)': ('zh-HK', 'female')
 }
-
-#VOICES = [
-#    ('Microsoft Server Speech Text to Speech Voice (zh-CN, XiaoxiaoNeural)', 'zh-CN', 'female'),
-#    ('Microsoft Server Speech Text to Speech Voice (zh-HK, Tracy, Apollo)', 'zh-HK', 'female')
-#]
 
 
 class Azure(Service):
@@ -95,7 +91,7 @@ class Azure(Service):
     def get_token(self, subscription_key):
         fetch_token_url = "https://eastus.api.cognitive.microsoft.com/sts/v1.0/issueToken"
         headers = {
-            'Ocp-Apim-Subscription-Key': self.subscription_key
+            'Ocp-Apim-Subscription-Key': subscription_key
         }
         response = requests.post(fetch_token_url, headers=headers)
         self.access_token = str(response.text)
@@ -103,28 +99,40 @@ class Azure(Service):
     def run(self, text, options, path):
         """Downloads from Azure API directly to an MP3."""
 
-        try:
-            if self.access_token == None:
-                self.get_token(options['key'])
+        if self.access_token == None:
+            self.get_token(options['key'])
 
-            self.net_download(
-                path,
-                [
-                    ('http://api.ispeech.org/api/rest',
-                     dict(apikey=options['key'], action='convert',
-                          text=subtext, voice=options['voice'],
-                          speed=options['speed'], pitch=options['pitch']))
-                    for subtext in self.util_split(text, 250)
-                ],
-                require=dict(mime='audio/mpeg', size=256),
-                add_padding=True,
-            )
-        except ValueError as error:
-            try:
-                from urllib.parse import parse_qs
-                error = ValueError(parse_qs(error.payload)['message'][0])
-            except Exception:
-                pass
-            raise error
+        voice = options['voice']
+        voice_name = voice
+        language = VOICES[voice_name][0]
 
-        self.net_reset()  # no throttle; FIXME should be controlled by trait
+        base_url = 'https://eastus.tts.speech.microsoft.com/'
+        url_path = 'cognitiveservices/v1'
+        constructed_url = base_url + url_path
+        headers = {
+            'Authorization': 'Bearer ' + self.access_token,
+            'Content-Type': 'application/ssml+xml',
+            'X-Microsoft-OutputFormat': 'audio-24khz-96kbitrate-mono-mp3',
+            'User-Agent': 'anki-awesome-tts'
+        }
+
+        xml_body = ElementTree.Element('speak', version='1.0')
+
+        xml_body.set('{http://www.w3.org/XML/1998/namespace}lang', language)
+        voice = ElementTree.SubElement(xml_body, 'voice')
+        voice.set('{http://www.w3.org/XML/1998/namespace}lang', language)
+        voice.set(
+            'name', voice_name)
+
+        voice.text = text
+        body = ElementTree.tostring(xml_body)
+
+        response = requests.post(constructed_url, headers=headers, data=body)
+        if response.status_code == 200:
+            with open(path, 'wb') as audio:
+                audio.write(response.content)
+        else:
+            raise Exception("\nStatus code: " + str(response.status_code) +
+                "\nSomething went wrong. Check your subscription key and headers.\n")
+
+
