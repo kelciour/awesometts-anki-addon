@@ -89,6 +89,9 @@ class Azure(Service):
         ]
 
     def get_token(self, subscription_key):
+        if len(subscription_key) == 0:
+            raise ValueError("subscription key required")
+
         fetch_token_url = "https://eastus.api.cognitive.microsoft.com/sts/v1.0/issueToken"
         headers = {
             'Ocp-Apim-Subscription-Key': subscription_key
