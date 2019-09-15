@@ -99,8 +99,9 @@ class Azure(Service):
     def run(self, text, options, path):
         """Downloads from Azure API directly to an MP3."""
 
+        subscription_key = options['key']
         if self.access_token == None:
-            self.get_token(options['key'])
+            self.get_token(subscription_key)
 
         voice = options['voice']
         voice_name = voice
@@ -132,7 +133,6 @@ class Azure(Service):
             with open(path, 'wb') as audio:
                 audio.write(response.content)
         else:
-            raise Exception("\nStatus code: " + str(response.status_code) +
-                "\nSomething went wrong. Check your subscription key and headers.\n")
-
+            error_message = f"Status code: {response.status_code} voice: [{voice_name}] language: [{language} subscription key: [{subscription_key}]]"
+            raise ValueError(error_message)
 
