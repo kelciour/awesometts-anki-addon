@@ -223,6 +223,6 @@ class Azure(Service):
             with open(path, 'wb') as audio:
                 audio.write(response.content)
         else:
-            error_message = f"Status code: {response.status_code} voice: [{voice_name}] language: [{language} subscription key: [{subscription_key}]]"
+            error_message = f"Status code: {response.status_code} reason: {response.reason} voice: [{voice_name}] language: [{language} subscription key: [{subscription_key}]]"
             raise ValueError(error_message)
 
