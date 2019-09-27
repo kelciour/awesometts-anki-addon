@@ -21,6 +21,7 @@ Service implementation for the Microsoft Azure Text-To-Speech service
 https://azure.microsoft.com/en-us/services/cognitive-services/text-to-speech/
 """
 
+import time
 import requests
 from xml.etree import ElementTree
 from .base import Service
@@ -225,4 +226,7 @@ class Azure(Service):
         else:
             error_message = f"Status code: {response.status_code} reason: {response.reason} voice: [{voice_name}] language: [{language} subscription key: [{subscription_key}]]"
             raise ValueError(error_message)
+
+        time.sleep(1)
+
 
