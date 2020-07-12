@@ -263,6 +263,8 @@ updates = Updates(
 )
 
 STRIP_TEMPLATE_POSTHTML = [
+    ('custom_sub', 'sul_template'),
+    'html',
     'whitespace',
     'sounds_univ',
     'filenames',
@@ -272,7 +274,6 @@ STRIP_TEMPLATE_POSTHTML = [
     ('char_remove', 'spec_template_strip'),
     ('counter', 'spec_template_count', 'spec_template_count_wrap'),
     ('char_ellipsize', 'spec_template_ellipsize'),
-    ('custom_sub', 'sul_template'),
     'ellipses',
     'whitespace',
 ]
@@ -312,6 +313,7 @@ addon = Bundle(
         from_note=Sanitizer([
             ('clozes_braced', 'sub_note_cloze'),
             ('newline_ellipsize', 'ellip_note_newlines'),
+            ('custom_sub', 'sul_note'),
             'html',
             'whitespace',
             'sounds_univ',
@@ -322,7 +324,6 @@ addon = Bundle(
             ('char_remove', 'spec_note_strip'),
             ('counter', 'spec_note_count', 'spec_note_count_wrap'),
             ('char_ellipsize', 'spec_note_ellipsize'),
-            ('custom_sub', 'sul_note'),
             'ellipses',
             'whitespace',
         ], config=config, logger=logger),
@@ -334,7 +335,6 @@ addon = Bundle(
             'hint_links',
             ('hint_content', 'otf_remove_hints'),
             ('newline_ellipsize', 'ellip_template_newlines'),
-            'html',
         ] + STRIP_TEMPLATE_POSTHTML, config=config, logger=logger),
 
         # like the previous, but for the back sides of cards
@@ -343,7 +343,6 @@ addon = Bundle(
             'hint_links',
             ('hint_content', 'otf_remove_hints'),
             ('newline_ellipsize', 'ellip_template_newlines'),
-            'html',
         ] + STRIP_TEMPLATE_POSTHTML, config=config, logger=logger),
 
         # for cleaning up text from unknown sources (e.g. system clipboard);
@@ -356,6 +355,8 @@ addon = Bundle(
             ('hint_content', 'otf_remove_hints'),
             ('newline_ellipsize', 'ellip_note_newlines'),
             ('newline_ellipsize', 'ellip_template_newlines'),
+            ('custom_sub', 'sul_note'),
+            ('custom_sub', 'sul_template'),
             'html',
             'html',  # clipboards often have escaped HTML, so we run twice
             'whitespace',
@@ -371,8 +372,6 @@ addon = Bundle(
             ('counter', 'spec_template_count', 'spec_template_count_wrap'),
             ('char_ellipsize', 'spec_note_ellipsize'),
             ('char_ellipsize', 'spec_template_ellipsize'),
-            ('custom_sub', 'sul_note'),
-            ('custom_sub', 'sul_template'),
             'ellipses',
             'whitespace',
         ], config=config, logger=logger),
