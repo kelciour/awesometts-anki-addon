@@ -202,7 +202,6 @@ class Templater(ServiceDialog):
 
         now = self._get_all()
         tform = self._card_layout.tform
-        target = getattr(tform, now['templater_target'])
         presets = self.findChild(QtWidgets.QComboBox, 'presets_dropdown')
 
         last_service = now['last_service']
@@ -223,17 +222,24 @@ class Templater(ServiceDialog):
                 else '{{cloze:%s}}' % field if cloze
                 else '{{%s}}' % field)
 
-        target.setPlainText('\n'.join([target.toPlainText(),
-                                       '<tts %s>%s</tts>' % (attrs, html)]))
+        template = self._card_layout.current_template()
+        extra_text = '<tts %s>%s</tts>' % (attrs, html)
+        if now['templater_target'] == 'front':
+            template["qfmt"] += '\n' + extra_text
+        else:
+            template["afmt"] += '\n' + extra_text
 
         if now['templater_hide'] == 'global':
-            existing_css = tform.css.toPlainText()
+            existing_css = self._card_layout.model["css"]
             extra_css = 'tts { display: none }'
             if existing_css.find(extra_css) < 0:
-                tform.css.setPlainText('\n'.join([
+                self._card_layout.model["css"] = '\n'.join([
                     existing_css,
                     extra_css,
-                ]))
+                ])
+
+        self._card_layout.fill_fields_from_template()
+        self._card_layout.renderPreview()
 
         self._addon.config.update(now)
         super(Templater, self).accept()
