@@ -20,6 +20,7 @@
 Service implementation for Wiktionary single word pronunciations
 """
 
+import os
 import re
 
 from .base import Service
@@ -142,12 +143,14 @@ class Wiktionary(Service):
         # multiple pronunciations, but since there is no trivial
         # way to choose between them, this should be good enough
         # for now.
-        matcher = re.search(r'src="(//upload.wikimedia.org/[^"]+\.mp3)"', webpage)
+        matcher = re.search(r'"(//upload.wikimedia.org/[^"]+\.ogg)"', webpage)
 
         if not matcher:
             raise IOError("Wiktionary doesn't have any audio for this input.")
 
-        mp3_url = "https:" + matcher.group(1)
+        ogg_url = "https:" + matcher.group(1)
+        mp3_url = ogg_url.replace('/commons/', '/commons/transcoded/') + \
+                  '/' + os.path.basename(ogg_url) + '.mp3'
 
         self.net_download(path, mp3_url,
                           require=dict(mime='audio/mpeg', size=1024))
