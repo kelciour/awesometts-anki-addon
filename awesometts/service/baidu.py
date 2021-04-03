@@ -77,5 +77,5 @@ class Baidu(Service):
                  dict(text=subtext, lan=options['voice'], ie='UTF-8'))
                 for subtext in self.util_split(text, 300)
             ],
-            require=dict(mime='audio/mp3', size=512),
+            require=dict(size=512),
         )
