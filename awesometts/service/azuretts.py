@@ -381,13 +381,9 @@ class AzureTTS(Service):
 
         lang = self._languageCode(options['voice'])
 
-        body = """<speak version="1.0" xmlns="https://www.w3.org/2001/10/synthesis" xml:lang="{}">
-                    <voice name="{}">
-                      <prosody rate="{}">
-                        {}
-                      </prosody>
-                    </voice>
-                  </speak>""".format(lang, options['voice'], options['speed'], html.escape(text))
+        body = '<speak version="1.0" xmlns="https://www.w3.org/2001/10/synthesis" xml:lang="{}">'.format(lang)
+        body += '<voice name="{}"><prosody rate="{}">{}</prosody></voice>'.format(options['voice'], options['speed'], text)
+        body += '</speak>'
 
         body = body.encode("utf-8")
 
