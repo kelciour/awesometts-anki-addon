@@ -39,6 +39,7 @@ class AzureTTS(Service):
     __slots__ = [
         '_access_token',
         '_expire_time',
+        '_api_key',
     ]
 
     NAME = "Microsoft Azure Text to Speech"
@@ -294,6 +295,7 @@ class AzureTTS(Service):
     def __init__(self, *args, **kwargs):
         self._access_token = None
         self._expire_time = None
+        self._api_key = None
         super(AzureTTS, self).__init__(*args, **kwargs)
 
     def _languageCode(self, name):
@@ -370,6 +372,10 @@ class AzureTTS(Service):
         """
         Send a synthesis request to the Text-to-Speech API.
         """
+
+        if self._api_key != options['key']:
+            self._api_key = options['key']
+            self._access_token = None
 
         if self._access_token is None or time.monotonic() > self._expire_time:
             fetch_token_url = 'https://{}.api.cognitive.microsoft.com/sts/v1.0/issueToken'.format(options['region'])
