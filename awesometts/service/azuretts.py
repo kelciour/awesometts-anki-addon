@@ -359,13 +359,6 @@ class AzureTTS(Service):
                 default=1.00,
             ),
 
-            dict(
-                key='pitch',
-                label="Pitch",
-                values=(0.0, 2.00),
-                transform=float,
-                default=0.00,
-            ),
         ]
 
     def run(self, text, options, path):
