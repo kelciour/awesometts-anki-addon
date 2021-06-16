@@ -216,7 +216,7 @@ router = Router(
             ('ispeech', service.ISpeech),
             ('naver', service.Naver),
             ('neospeech', service.NeoSpeech),
-            ('oddcast', service.Oddcast),
+            # ('oddcast', service.Oddcast),
             ('oxford', service.Oxford),
             ('pico2wave', service.Pico2Wave),
             ('rhvoice', service.RHVoice),
@@ -232,6 +232,7 @@ router = Router(
         dead=dict(
             ttsapicom="TTS-API.com has gone offline and can no longer be "
                       "used. Please switch to another service with English.",
+            oddcast="Oddcast TTS has been implemented without authorization and was removed.",
         ),
         aliases=[('b', 'baidu'), ('g', 'google'), ('macosx', 'say'),
                  ('microsoft', 'sapi5js'), ('microsoftjs', 'sapi5js'),

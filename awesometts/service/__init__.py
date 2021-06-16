@@ -38,7 +38,7 @@ from .imtranslator import ImTranslator
 from .ispeech import ISpeech
 from .naver import Naver
 from .neospeech import NeoSpeech
-from .oddcast import Oddcast
+# from .oddcast import Oddcast
 from .oxford import Oxford
 from .pico2wave import Pico2Wave
 from .rhvoice import RHVoice
@@ -72,7 +72,7 @@ __all__ = [
     'ISpeech',
     'Naver',
     'NeoSpeech',
-    'Oddcast',
+    # 'Oddcast',
     'Oxford',
     'Pico2Wave',
     'RHVoice',
