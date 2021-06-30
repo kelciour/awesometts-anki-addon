@@ -302,7 +302,12 @@ class Sanitizer(object):  # call only, pylint:disable=too-few-public-methods
         """
 
         text = RE_LINEBREAK_HTML.sub(' ', text)
-        return STRIP_HTML(text)
+        text = anki.utils.reComment.sub("", text)
+        text = anki.utils.reStyle.sub("", text)
+        text = anki.utils.reScript.sub("", text)
+        text = anki.utils.entsToTxt(text)
+        text = _strip_html_keep_ssml(text)
+        return text
 
     def _rule_newline_ellipsize(self, text):
         """
@@ -365,6 +370,14 @@ class Sanitizer(object):  # call only, pylint:disable=too-few-public-methods
         """Removes text within parentheses."""
         return _aux_within(text, '(', ')')
 
+def _strip_html_keep_ssml(text):
+    def repl(m):
+        name = m.group(1)
+        if name in ['break', 'phoneme', 'prosody', 'say-as']:
+            return m.group(0)
+        return ''
+    text = re.sub(r'(?s)</?(.*?)>', repl, text)
+    return text
 
 def _aux_within(text, begin_char, end_char):
     """
